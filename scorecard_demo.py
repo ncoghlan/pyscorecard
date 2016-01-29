@@ -25,9 +25,7 @@ def score_only_query(data):
         "id" : "score-only-demo-query",
         "arguments" : data
     }
-    response = requests.post(score_only_url,
-                             data = json.dumps(body), json = None,
-                             headers = {"content-type" : "application/json"})
+    response = requests.post(score_only_url, json=body)
     response.raise_for_status()
     return response.json()
 
@@ -44,9 +42,8 @@ score_only_example = {
 
 # Example uses a Drools test case with the following query schema
 # age: double
-# occupation: [ "SKYDIVER", "ASTRONAUT", "PROGRAMMER", "TEACHER", "INSTRUCTOR" ]
-# residenceState: [ "AP", "KN", "TN" ]
-# validLicense: boolean
+# wage: integer
+# cage: [ "engineering", "marketing", "business" ]
 reason_code_url = base_url + "drools_pmml_test_scorecardOut"
 
 def reason_code_query(data):
@@ -55,9 +52,7 @@ def reason_code_query(data):
         "id" : "reason-code-demo-query",
         "arguments" : data
     }
-    response = requests.post(reason_code_url,
-                             data = json.dumps(body), json = None,
-                             headers = {"content-type" : "application/json"})
+    response = requests.post(reason_code_url, json=body)
     response.raise_for_status()
     return response.json()
 
