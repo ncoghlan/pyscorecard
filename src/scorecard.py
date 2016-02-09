@@ -115,7 +115,6 @@ def _render_pmml_attribute(characteristic, name, attribute_details):
         operator = _cmpopmap[cmpop]
         etree.SubElement(and_group, "SimplePredicate",
                          field=name, operator=operator, value=value)
-        return
 
 if __name__ == "__main__":
     # Print example scorecard
