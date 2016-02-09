@@ -42,6 +42,11 @@ reason_code_examples = [
   "role": "marketing",
   "wage": 500,
 },
+{
+  "age": 53,
+  "role": "engineering",
+  "wage": 3000,
+},
 ]
 
 for example in reason_code_examples:
