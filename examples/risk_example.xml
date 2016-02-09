@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='ASCII'?>
+<PMML version="4.2" xmlns="http://www.dmg.org/PMML-4_2">
+  <Header/>
+  <DataDictionary>
+    <DataField dataType="string" name="role" optype="categorical"/>
+    <DataField dataType="integer" name="age" optype="continuous"/>
+    <DataField dataType="double" name="wage" optype="continuous"/>
+    <DataField dataType="double" name="calculatedScore" optype="continuous"/>
+  </DataDictionary>
+  <Scorecard baselineMethod="min" baselineScore="0" functionName="regression" initialScore="0" modelName="ExampleModel" reasonCodeAlgorithm="pointsAbove" useReasonCodes="true">
+    <MiningSchema>
+      <MiningField name="role"/>
+      <MiningField name="age"/>
+      <MiningField name="wage"/>
+      <MiningField name="calculatedScore" usageType="predicted"/>
+    </MiningSchema>
+    <Output>
+      <OutputField dataType="double" feature="predictedValue" name="RiskScore" optype="continuous"/>
+      <OutputField dataType="string" feature="reasonCode" name="ReasonCode1" optype="categorical"/>
+      <OutputField dataType="string" feature="reasonCode" name="ReasonCode2" optype="categorical"/>
+      <OutputField dataType="string" feature="reasonCode" name="ReasonCode3" optype="categorical"/>
+    </Output>
+    <Characteristics>
+      <Characteristic baselineScore="0" name="roleScore" reasonCode="roleRC">
+        <Attribute partialScore="20" reasonCode="RoleMissing">
+          <SimplePredicate field="role" operator="isMissing"/>
+        </Attribute>
+        <Attribute partialScore="10" reasonCode="RoleMRKT">
+          <SimplePredicate field="role" operator="equal" value="'marketing'"/>
+        </Attribute>
+        <Attribute partialScore="5" reasonCode="RoleENGR">
+          <SimplePredicate field="role" operator="equal" value="'engineering'"/>
+        </Attribute>
+        <Attribute partialScore="10" reasonCode="RoleBSNS">
+          <SimplePredicate field="role" operator="equal" value="'business'"/>
+        </Attribute>
+      </Characteristic>
+      <Characteristic baselineScore="0" name="ageScore" reasonCode="ageRC">
+        <Attribute partialScore="20" reasonCode="AgeMissing">
+          <SimplePredicate field="age" operator="isMissing"/>
+        </Attribute>
+        <Attribute partialScore="15" reasonCode="AgeChild">
+          <SimplePredicate field="age" operator="lessOrEqual" value="18"/>
+        </Attribute>
+        <Attribute partialScore="25" reasonCode="AgeYoungAdult">
+          <CompoundPredicate booleanOperator="and">
+            <SimplePredicate field="age" operator="greaterThan" value="18"/>
+          </CompoundPredicate>
+        </Attribute>
+        <Attribute partialScore="5" reasonCode="AgeAdult">
+          <CompoundPredicate booleanOperator="and">
+            <SimplePredicate field="age" operator="greaterThan" value="29"/>
+          </CompoundPredicate>
+        </Attribute>
+        <Attribute partialScore="0" reasonCode="AgeOlderAdult">
+          <SimplePredicate field="age" operator="greaterThan" value="39"/>
+        </Attribute>
+      </Characteristic>
+      <Characteristic baselineScore="0" name="wageScore" reasonCode="wageRC">
+        <Attribute partialScore="20" reasonCode="WageMissing">
+          <SimplePredicate field="wage" operator="isMissing"/>
+        </Attribute>
+        <Attribute partialScore="25" reasonCode="WageLow">
+          <SimplePredicate field="wage" operator="lessOrEqual" value="1000"/>
+        </Attribute>
+        <Attribute partialScore="10" reasonCode="WageMedium">
+          <CompoundPredicate booleanOperator="and">
+            <SimplePredicate field="wage" operator="greaterThan" value="1000"/>
+          </CompoundPredicate>
+        </Attribute>
+        <Attribute partialScore="0" reasonCode="WageHigh">
+          <SimplePredicate field="wage" operator="greaterThan" value="2500"/>
+        </Attribute>
+      </Characteristic>
+    </Characteristics>
+  </Scorecard>
+</PMML>
+
