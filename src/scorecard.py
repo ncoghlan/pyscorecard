@@ -6,21 +6,13 @@ __all__ = ["SchemaField", "Characteristic", "Attribute", "pmml_scorecard"]
 # Relevant PMML element details
 DataField = namedtuple("DataField", "name dataType optype")
 MiningField = namedtuple("MiningField", "name usageType")
-OutputField = namedtuple("OutputField", "name feature dataType optype")
 Characteristic = namedtuple("Characteristic", "name baselineScore attributes")
 Attribute = namedtuple("Attribute", "reasonCode partialScore predicate")
 
 # Merged input type for describing data and mining fields
 SchemaField = namedtuple("SchemaField", "name dataType optype usageType")
 
-# Constants and lookup tables
-_output_fields = [
-    OutputField("RiskScore", "predictedValue", "double", "continuous"),
-    OutputField("ReasonCode1", "reasonCode", "string", "categorical"),
-    OutputField("ReasonCode2", "reasonCode", "string", "categorical"),
-    OutputField("ReasonCode3", "reasonCode", "string", "categorical"),
-]
-
+# Comparison operator conversion
 _cmpopmap = {
     "<":"lessThan",
     "<=":"lessOrEqual",
@@ -67,8 +59,18 @@ def pmml_scorecard(model_name, schema_fields, characteristic_fields):
 
     # Output fields
     output = etree.SubElement(scorecard, "Output")
-    for field in _output_fields:
-        etree.SubElement(output, "OutputField", **field._asdict())
+    etree.SubElement(output, "OutputField",
+                     name="RiskScore",
+                     feature="predictedValue",
+                     dataType="double",
+                     optype="continuous")
+    for i in range(1, 4):
+        etree.SubElement(output, "OutputField",
+                         name="ReasonCode" + str(i),
+                         rank=str(i),
+                         feature="reasonCode",
+                         dataType="string",
+                         optype="categorical")
 
     # Characteristic scoring
     characteristics = etree.SubElement(scorecard, "Characteristics")
@@ -128,9 +130,9 @@ if __name__ == "__main__":
         Characteristic("role", "0",
                     [
                         Attribute("RoleMissing", "20", None),
-                        Attribute("RoleMRKT", "10", "== 'marketing'"),
-                        Attribute("RoleENGR", "5", "== 'engineering'"),
-                        Attribute("RoleBSNS", "10", "== 'business'"),
+                        Attribute("RoleMRKT", "10", "== marketing"),
+                        Attribute("RoleENGR", "5", "== engineering"),
+                        Attribute("RoleBSNS", "10", "== business"),
                     ]
                     ),
         Characteristic("age", "0",

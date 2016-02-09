@@ -16,9 +16,9 @@
     </MiningSchema>
     <Output>
       <OutputField dataType="double" feature="predictedValue" name="RiskScore" optype="continuous"/>
-      <OutputField dataType="string" feature="reasonCode" name="ReasonCode1" optype="categorical"/>
-      <OutputField dataType="string" feature="reasonCode" name="ReasonCode2" optype="categorical"/>
-      <OutputField dataType="string" feature="reasonCode" name="ReasonCode3" optype="categorical"/>
+      <OutputField dataType="string" feature="reasonCode" name="ReasonCode1" optype="categorical" rank="1"/>
+      <OutputField dataType="string" feature="reasonCode" name="ReasonCode2" optype="categorical" rank="2"/>
+      <OutputField dataType="string" feature="reasonCode" name="ReasonCode3" optype="categorical" rank="3"/>
     </Output>
     <Characteristics>
       <Characteristic baselineScore="0" name="roleScore" reasonCode="roleRC">
@@ -26,13 +26,13 @@
           <SimplePredicate field="role" operator="isMissing"/>
         </Attribute>
         <Attribute partialScore="10" reasonCode="RoleMRKT">
-          <SimplePredicate field="role" operator="equal" value="'marketing'"/>
+          <SimplePredicate field="role" operator="equal" value="marketing"/>
         </Attribute>
         <Attribute partialScore="5" reasonCode="RoleENGR">
-          <SimplePredicate field="role" operator="equal" value="'engineering'"/>
+          <SimplePredicate field="role" operator="equal" value="engineering"/>
         </Attribute>
         <Attribute partialScore="10" reasonCode="RoleBSNS">
-          <SimplePredicate field="role" operator="equal" value="'business'"/>
+          <SimplePredicate field="role" operator="equal" value="business"/>
         </Attribute>
       </Characteristic>
       <Characteristic baselineScore="0" name="ageScore" reasonCode="ageRC">
