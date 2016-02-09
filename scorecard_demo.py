@@ -26,7 +26,9 @@ def reason_code_query(data):
     }
     response = requests.post(reason_code_url, json=body)
     response.raise_for_status()
-    return response.json()
+    result = response.json()["result"]
+    return (result["RiskScore"], result["ReasonCode1"],
+            result["ReasonCode2"], result["ReasonCode3"])
 
 reason_code_examples = [
 {},
@@ -43,4 +45,5 @@ reason_code_examples = [
 ]
 
 for example in reason_code_examples:
-    print(reason_code_query(example))
+    print("Query: {}".format(example))
+    print("Result: {}\n".format(reason_code_query(example)))
