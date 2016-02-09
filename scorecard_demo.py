@@ -10,41 +10,13 @@ import json
 # git repo, rather than via
 base_url = "http://openscoring-ncoghlan.rhcloud.com/openscoring/model/"
 
-# Query for a score without any explanatory codes
-
-# Example uses a Drools test case with the following query schema
-# age: double
-# occupation: [ "SKYDIVER", "ASTRONAUT", "PROGRAMMER", "TEACHER", "INSTRUCTOR" ]
-# residenceState: [ "AP", "KN", "TN" ]
-# validLicense: boolean
-score_only_url = base_url + "drools_pmml_test_scorecard"
-
-def score_only_query(data):
-    query_url = score_only_url
-    body = {
-        "id" : "score-only-demo-query",
-        "arguments" : data
-    }
-    response = requests.post(score_only_url, json=body)
-    response.raise_for_status()
-    return response.json()
-
-score_only_example = {
-  "age": 37,
-  "occupation": "PROGRAMMER",
-  "residenceState": "TN",
-  "validLicense": True,
-}
-
-# print(score_only_query(score_only_example))
-
 # Query for a score with explanatory reason codes
 
-# Example uses a Drools test case with the following query schema
+# Example uses the following query schema
 # age: double
 # wage: integer
-# cage: [ "engineering", "marketing", "business" ]
-reason_code_url = base_url + "drools_pmml_test_scorecardOut"
+# role: [ "engineering", "marketing", "business" ]
+reason_code_url = base_url + "risk_example"
 
 def reason_code_query(data):
     query_url = reason_code_url
@@ -57,14 +29,15 @@ def reason_code_query(data):
     return response.json()
 
 reason_code_examples = [
+{},
 {
   "age": 37,
-  "cage": "engineering",
+  "role": "engineering",
   "wage": 1500,
 },
 {
   "age": 21,
-  "cage": "marketing",
+  "role": "marketing",
   "wage": 500,
 },
 ]
