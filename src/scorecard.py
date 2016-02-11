@@ -1,7 +1,16 @@
 from collections import namedtuple
 from lxml import etree
+import json
 
-__all__ = ["SchemaField", "Characteristic", "Attribute", "pmml_scorecard"]
+__all__ = ["pmml_scorecard"]
+
+# Public API
+def pmml_scorecard(json_scorecard):
+    """Converts a JSON scorecard to a PMML scorecard"""
+    parsed_model = _json_to_internal(json_scorecard)
+    return _internal_to_pmml(*parsed_model)
+
+# Implementation details
 
 # Relevant PMML element details
 DataField = namedtuple("DataField", "name dataType optype")
@@ -17,9 +26,30 @@ _cmpopmap = {
     ">":"greaterThan",
 }
 
-# Creating scorecards
-def pmml_scorecard(model_name, data_fields, characteristic_fields):
-    """Returns rendered PMML scorecard for given scorecard definition"""
+def _json_to_internal(json_scorecard):
+    """Converts a JSON scorecard description to the internal representation"""
+    model_name = sc_details["model_name"]
+    data_fields = [
+        DataField(df["name"], df["dataType"], df["optype"])
+            for df in sc_details["data_fields"]
+    ]
+    characteristics = [
+        Characteristic(c["name"],
+                       str(c["baselineScore"]),
+                       [
+                           Attribute(a["reasonCode"],
+                                     str(a["partialScore"]),
+                                     a["predicate"])
+                               for a in c["attributes"]
+                       ]
+                      )
+            for c in sc_details["characteristics"]
+    ]
+    return model_name, data_fields, characteristics
+
+
+def _internal_to_pmml(model_name, data_fields, characteristic_fields):
+    """Converts an internal scorecard description to rendered PMML"""
 
     # Header
     root = etree.Element("PMML", version="4.2",
@@ -112,22 +142,4 @@ if __name__ == "__main__":
     with open(sys.argv[1]) as sc_source:
         sc_details = json.load(sc_source)
 
-    model_name = sc_details["model_name"]
-    data_fields = [
-        DataField(df["name"], df["dataType"], df["optype"])
-            for df in sc_details["data_fields"]
-    ]
-    characteristics = [
-        Characteristic(c["name"],
-                       str(c["baselineScore"]),
-                       [
-                           Attribute(a["reasonCode"],
-                                     str(a["partialScore"]),
-                                     a["predicate"])
-                               for a in c["attributes"]
-                       ]
-                      )
-            for c in sc_details["characteristics"]
-    ]
-
-    print(pmml_scorecard(model_name, data_fields, characteristics))
+    print(pmml_scorecard(sc_details))
