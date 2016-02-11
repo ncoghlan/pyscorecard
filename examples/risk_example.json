@@ -1,0 +1,105 @@
+{
+    "model_name": "ExampleModel",
+    "data_fields": [
+        {
+            "name": "role",
+            "dataType": "string",
+            "optype": "categorical"
+        },
+        {
+            "name": "age",
+            "dataType": "integer",
+            "optype": "continuous"
+        },
+        {
+            "name": "wage",
+            "dataType": "double",
+            "optype": "continuous"
+        }
+    ],
+    "characteristics": [
+        {
+            "name": "role",
+            "baselineScore": 0,
+            "attributes": [
+                {
+                    "reasonCode": "RoleMissing",
+                    "partialScore": 20,
+                    "predicate": null
+                },
+                {
+                    "reasonCode": "RoleMRKT",
+                    "partialScore": 10,
+                    "predicate": "== marketing"
+                },
+                {
+                    "reasonCode": "RoleENGR",
+                    "partialScore": 5,
+                    "predicate": "== engineering"
+                },
+                {
+                    "reasonCode": "RoleBSNS",
+                    "partialScore": 10,
+                    "predicate": "== business"
+                }
+            ]
+        },
+        {
+            "name": "age",
+            "baselineScore": 0,
+            "attributes": [
+                {
+                    "reasonCode": "AgeMissing",
+                    "partialScore": 20,
+                    "predicate": null
+                },
+                {
+                    "reasonCode": "AgeChild",
+                    "partialScore": 15,
+                    "predicate": "<= 18"
+                },
+                {
+                    "reasonCode": "AgeYoungAdult",
+                    "partialScore": 25,
+                    "predicate": ["> 18", "<= 29"]
+                },
+                {
+                    "reasonCode": "AgeAdult",
+                    "partialScore": 5,
+                    "predicate": ["> 29", "<= 39"]
+                },
+                {
+                    "reasonCode": "AgeOlderAdult",
+                    "partialScore": 0,
+                    "predicate": "> 39"
+                }
+            ]
+        },
+        {
+            "name": "wage",
+            "baselineScore": 0,
+            "attributes": [
+                {
+                    "reasonCode": "WageMissing",
+                    "partialScore": 20,
+                    "predicate": null
+                },
+                {
+                    "reasonCode": "WageLow",
+                    "partialScore": 25,
+                    "predicate": "<= 1000"
+                },
+                {
+                    "reasonCode": "WageMedium",
+                    "partialScore": 10,
+                    "predicate": ["> 1000", "<= 2500"]
+                },
+                {
+                    "reasonCode": "WageHigh",
+                    "partialScore": 0,
+                    "predicate": "> 2500"
+                }
+            ]
+        }
+    ]
+}
