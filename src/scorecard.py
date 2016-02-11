@@ -107,37 +107,27 @@ def _render_pmml_attribute(characteristic, name, attribute_details):
 
 if __name__ == "__main__":
     # Print example scorecard
+    import sys
+    import json
+    with open(sys.argv[1]) as sc_source:
+        sc_details = json.load(sc_source)
+
+    model_name = sc_details["model_name"]
     data_fields = [
-        DataField("role", "string", "categorical"),
-        DataField("age", "integer", "continuous"),
-        DataField("wage", "double", "continuous"),
+        DataField(df["name"], df["dataType"], df["optype"])
+            for df in sc_details["data_fields"]
+    ]
+    characteristics = [
+        Characteristic(c["name"],
+                       str(c["baselineScore"]),
+                       [
+                           Attribute(a["reasonCode"],
+                                     str(a["partialScore"]),
+                                     a["predicate"])
+                               for a in c["attributes"]
+                       ]
+                      )
+            for c in sc_details["characteristics"]
     ]
 
-    characteristics = [
-        Characteristic("role", "0",
-                    [
-                        Attribute("RoleMissing", "20", None),
-                        Attribute("RoleMRKT", "10", "== marketing"),
-                        Attribute("RoleENGR", "5", "== engineering"),
-                        Attribute("RoleBSNS", "10", "== business"),
-                    ]
-                    ),
-        Characteristic("age", "0",
-                    [
-                        Attribute("AgeMissing", "20", None),
-                        Attribute("AgeChild", "15", "<= 18"),
-                        Attribute("AgeYoungAdult", "25", ["> 18", "<= 29"]),
-                        Attribute("AgeAdult", "5", ["> 29", "<= 39"]),
-                        Attribute("AgeOlderAdult", "0", "> 39"),
-                    ]
-                    ),
-        Characteristic("wage", "0",
-                    [
-                        Attribute("WageMissing", "20", None),
-                        Attribute("WageLow", "25", "<= 1000"),
-                        Attribute("WageMedium", "10", ["> 1000", "<= 2500"]),
-                        Attribute("WageHigh", "0", "> 2500"),
-                    ]
-                    ),
-    ]
-    print(pmml_scorecard("ExampleModel", data_fields, characteristics))
+    print(pmml_scorecard(model_name, data_fields, characteristics))
