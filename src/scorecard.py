@@ -5,12 +5,8 @@ __all__ = ["SchemaField", "Characteristic", "Attribute", "pmml_scorecard"]
 
 # Relevant PMML element details
 DataField = namedtuple("DataField", "name dataType optype")
-MiningField = namedtuple("MiningField", "name usageType")
 Characteristic = namedtuple("Characteristic", "name baselineScore attributes")
 Attribute = namedtuple("Attribute", "reasonCode partialScore predicate")
-
-# Merged input type for describing data and mining fields
-SchemaField = namedtuple("SchemaField", "name dataType optype usageType")
 
 # Comparison operator conversion
 _cmpopmap = {
@@ -22,13 +18,8 @@ _cmpopmap = {
 }
 
 # Creating scorecards
-def pmml_scorecard(model_name, schema_fields, characteristic_fields):
+def pmml_scorecard(model_name, data_fields, characteristic_fields):
     """Returns rendered PMML scorecard for given scorecard definition"""
-    data_fields = []
-    mining_fields = []
-    for name, dataType, optype, usageType in schema_fields:
-        data_fields.append(DataField(name=name, dataType=dataType, optype=optype))
-        mining_fields.append(MiningField(name=name, usageType=usageType))
 
     # Header
     root = etree.Element("PMML", version="4.2",
@@ -52,10 +43,8 @@ def pmml_scorecard(model_name, schema_fields, characteristic_fields):
 
     # Query fields
     schema = etree.SubElement(scorecard, "MiningSchema")
-    for name, usageType in mining_fields:
+    for name, dataType, optype in data_fields:
         element = etree.SubElement(schema, "MiningField", name=name)
-        if usageType is not None:
-            element.set("usageType", usageType)
 
     # Output fields
     output = etree.SubElement(scorecard, "Output")
@@ -118,14 +107,13 @@ def _render_pmml_attribute(characteristic, name, attribute_details):
 
 if __name__ == "__main__":
     # Print example scorecard
-    schema_fields = [
-        SchemaField("role", "string", "categorical", None),
-        SchemaField("age", "integer", "continuous", None),
-        SchemaField("wage", "double", "continuous", None),
-        SchemaField("calculatedScore", "double", "continuous", "predicted"),
+    data_fields = [
+        DataField("role", "string", "categorical"),
+        DataField("age", "integer", "continuous"),
+        DataField("wage", "double", "continuous"),
     ]
 
-    characteristic_fields = [
+    characteristics = [
         Characteristic("role", "0",
                     [
                         Attribute("RoleMissing", "20", None),
@@ -152,4 +140,4 @@ if __name__ == "__main__":
                     ]
                     ),
     ]
-    print(pmml_scorecard("ExampleModel", schema_fields, characteristic_fields))
+    print(pmml_scorecard("ExampleModel", data_fields, characteristics))
