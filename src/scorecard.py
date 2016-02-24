@@ -14,7 +14,7 @@ def pmml_scorecard(json_scorecard):
 
 # Relevant PMML element details
 DataField = namedtuple("DataField", "name dataType optype")
-Characteristic = namedtuple("Characteristic", "name baselineScore attributes")
+Characteristic = namedtuple("Characteristic", "name attributes")
 Attribute = namedtuple("Attribute", "reasonCode partialScore predicate")
 
 # Comparison operator conversion
@@ -35,7 +35,6 @@ def _json_to_internal(json_scorecard):
     ]
     characteristics = [
         Characteristic(c["name"],
-                       str(c["baselineScore"]),
                        [
                            Attribute(a["reasonCode"],
                                      str(a["partialScore"]),
@@ -68,7 +67,7 @@ def _internal_to_pmml(model_name, data_fields, characteristic_fields):
                                  useReasonCodes="true",
                                  reasonCodeAlgorithm="pointsAbove",
                                  initialScore="0",
-                                 baselineScore="0",
+                                 baselineScore="1",
                                  baselineMethod="min")
 
     # Query fields
@@ -93,11 +92,10 @@ def _internal_to_pmml(model_name, data_fields, characteristic_fields):
 
     # Characteristic scoring
     characteristics = etree.SubElement(scorecard, "Characteristics")
-    for name, baselineScore, attributes in characteristic_fields:
+    for name, attributes in characteristic_fields:
         characteristic = etree.SubElement(characteristics, "Characteristic",
                                           name = name + "Score",
-                                          reasonCode = name + "RC",
-                                          baselineScore = baselineScore)
+                                          reasonCode = name + "RC")
         for attribute in attributes:
             _render_pmml_attribute(characteristic, name, attribute)
 

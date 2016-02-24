@@ -6,7 +6,7 @@
     <DataField dataType="integer" name="age" optype="continuous"/>
     <DataField dataType="double" name="wage" optype="continuous"/>
   </DataDictionary>
-  <Scorecard baselineMethod="min" baselineScore="0" functionName="regression" initialScore="0" modelName="ExampleModel" reasonCodeAlgorithm="pointsAbove" useReasonCodes="true">
+  <Scorecard baselineMethod="min" baselineScore="1" functionName="regression" initialScore="0" modelName="ExampleModel" reasonCodeAlgorithm="pointsAbove" useReasonCodes="true">
     <MiningSchema>
       <MiningField name="role"/>
       <MiningField name="age"/>
@@ -19,7 +19,7 @@
       <OutputField dataType="string" feature="reasonCode" name="ReasonCode3" optype="categorical" rank="3"/>
     </Output>
     <Characteristics>
-      <Characteristic baselineScore="0" name="roleScore" reasonCode="roleRC">
+      <Characteristic name="roleScore" reasonCode="roleRC">
         <Attribute partialScore="20" reasonCode="RoleMissing">
           <SimplePredicate field="role" operator="isMissing"/>
         </Attribute>
@@ -33,7 +33,7 @@
           <SimplePredicate field="role" operator="equal" value="business"/>
         </Attribute>
       </Characteristic>
-      <Characteristic baselineScore="0" name="ageScore" reasonCode="ageRC">
+      <Characteristic name="ageScore" reasonCode="ageRC">
         <Attribute partialScore="20" reasonCode="AgeMissing">
           <SimplePredicate field="age" operator="isMissing"/>
         </Attribute>
@@ -56,7 +56,7 @@
           <SimplePredicate field="age" operator="greaterThan" value="39"/>
         </Attribute>
       </Characteristic>
-      <Characteristic baselineScore="0" name="wageScore" reasonCode="wageRC">
+      <Characteristic name="wageScore" reasonCode="wageRC">
         <Attribute partialScore="20" reasonCode="WageMissing">
           <SimplePredicate field="wage" operator="isMissing"/>
         </Attribute>

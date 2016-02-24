@@ -22,8 +22,11 @@ All ScoreCards produce a single predicted risk score and up to 3 reason codes:
 * `ReasonCode3`
 
 Generated ScoreCards are also currently all hardcoded to use the "pointsAbove"
-reason code algorithm, the "min" baseline score algorithm, and `0` as the
-initial and baseline score for the overall scorecard evaluation.
+reason code algorithm, the "min" baseline score algorithm, `0` as the
+initial score for the overall scorecard evaluation and `1` as the baseline
+score for each individual characteristic (this ensures that characteristics
+achieving a partial score of `0` are never reported as reason codes for the
+overall risk scoring).
 
 The input format is a JSON mapping with the following fields:
 
@@ -41,8 +44,6 @@ The input format is a JSON mapping with the following fields:
   * `name`: data field used by this characteristic. Also used to derive the
     characteristic name as `name + "Score"` and the overall characteristic
     reason code as `name + "RC"`
-  * `baselineScore`: baseline contribution to the risk score for this
-    characteristic
   * `attributes`: sequence of attribute definitions used by the characteristic
 
     * `reasonCode`: specific reason code when this criterion is met
