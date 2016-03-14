@@ -1,6 +1,10 @@
+"""PMML Scorecard generator"""
+
 from collections import namedtuple
 from lxml import etree
 import json
+
+__version__ = "0.2"
 
 __all__ = ["pmml_scorecard"]
 
@@ -28,10 +32,10 @@ _cmpopmap = {
 
 def _json_to_internal(json_scorecard):
     """Converts a JSON scorecard description to the internal representation"""
-    model_name = sc_details["model_name"]
+    model_name = json_scorecard["model_name"]
     data_fields = [
         DataField(df["name"], df["dataType"], df["optype"])
-            for df in sc_details["data_fields"]
+            for df in json_scorecard["data_fields"]
     ]
     characteristics = [
         Characteristic(c["name"],
@@ -42,7 +46,7 @@ def _json_to_internal(json_scorecard):
                                for a in c["attributes"]
                        ]
                       )
-            for c in sc_details["characteristics"]
+            for c in json_scorecard["characteristics"]
     ]
     return model_name, data_fields, characteristics
 
@@ -133,11 +137,14 @@ def _render_pmml_attribute(characteristic, name, attribute_details):
         etree.SubElement(and_group, "SimplePredicate",
                          field=name, operator=operator, value=value)
 
-if __name__ == "__main__":
-    # Print example scorecard
+def main():
+    # Print specified scorecard
     import sys
     import json
     with open(sys.argv[1]) as sc_source:
         sc_details = json.load(sc_source)
 
-    print(pmml_scorecard(sc_details))
+    print(pmml_scorecard(sc_details).decode("ascii"))
+
+if __name__ == "__main__":
+    main()
