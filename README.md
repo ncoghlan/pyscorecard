@@ -9,8 +9,15 @@ Demo git repo: https://github.com/ncoghlan/openscoring-openshift
 
 ## PMML ScoreCard generation from JSON input
 
-scorecard.pmml_scorecard generates PMML scorecard definitions from a
-JSON-compatible input mapping.
+Command line invocation:
+
+    pyscorecard input_spec.json pmml_output_dir
+
+Output PMML file names are generated based on a combination of "model_name"
+and "param_grid" entries as described below.
+
+In the Python API, `scorecard.pmml_scorecard` generates PMML scorecard
+definitions from a JSON-compatible input mapping.
 
 See examples/risk_example.json (input) and examples/risk_example.xml (output)
 
@@ -30,13 +37,21 @@ overall risk scoring).
 
 The input format is a JSON mapping with the following fields:
 
-* `model_name`: name of the model
+* `model_name`: name of the model (also used as output filename prefix)
+* `param_grid`: parameter definitions for use in characteristic predicates
+
+  * key is the variable name that can be substituted into predicates
+  * value is a mapping of output filename suffixes to substition values
+  * when multiple grid parameters are defined, keys are lexically sorted
+    when determining the combined output filename
+
 * `data_fields`: sequence of field definitions for the DataDictionary and
   MiningSchema sections in the generated PMML Scorecard
 
   * `name`: used in both the DataField entry and the MiningField entry
   * `dataType`: used in the DataField entry
   * `optype`: used in the DataField entry to define handling of comparisons
+  * `values`: permitted values for categorical and ordinal fields
 
 * `characteristics`: sequence of definitions for the Characteristic section in
   the generated PMML Scorecard
@@ -54,10 +69,11 @@ Predicates can be defined as either a single string, or as a sequence of such
 strings. Each string predicate is of the form "OP value", with the data field
 named in the characteristic definition being the implied left hand side of
 the operation. Predicate sequences are implicitly and'ed together to define
-the overall criterion to be met for that attribute.
+the overall criterion to be met for that attribute. Predicate values may
+start with `$` to indicate a grid parameter - these will be substituted with
+the appropriate value for the scorecard currently being generated.
 
-Permitted operations are `==` for data fields with the categorical optype, and
-`==`, `<`, `<=`, `>=`, and `>` for data fields with the continuous optype
-(while other optypes are defined in PMML, they are not yet supported
-in pyscorecard).
+Permitted operations are `==` for data fields with the `categorical` optype, and
+`==`, `<`, `<=`, `>=`, and `>` for data fields with the `ordinal` or
+`continuous` optype.
 

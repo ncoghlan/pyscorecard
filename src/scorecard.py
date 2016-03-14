@@ -1,17 +1,21 @@
 """PMML Scorecard generator"""
 
 from collections import namedtuple
-from lxml import etree
 import json
+import string
+from lxml import etree
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 __all__ = ["pmml_scorecard"]
 
 # Public API
-def pmml_scorecard(json_scorecard):
-    """Converts a JSON scorecard to a PMML scorecard"""
-    parsed_model = _json_to_internal(json_scorecard)
+def pmml_scorecard(json_scorecard, parameters=None):
+    """Converts a JSON scorecard to a PMML scorecard
+
+    *parameters* is an optional mapping for $-substitions in predicates
+    """
+    parsed_model = _json_to_internal(json_scorecard, parameters)
     return _internal_to_pmml(*parsed_model)
 
 # Implementation details
@@ -30,7 +34,16 @@ _cmpopmap = {
     ">":"greaterThan",
 }
 
-def _json_to_internal(json_scorecard):
+def _read_predicate(predicate, params):
+    """Reads a predicate from JSON, substituting fields as appropriate"""
+    if predicate is None or "$" not in predicate:
+        return predicate
+    return string.Template(predicate).substitute(params)
+    # TODO: It would be preferable to only create the template once per input,
+    #       rather than per parameter grid entry. Using a helper function
+    #       decorated with functools.lru_cache when on Python 3, for example.
+
+def _json_to_internal(json_scorecard, params):
     """Converts a JSON scorecard description to the internal representation"""
     model_name = json_scorecard["model_name"]
     data_fields = [
@@ -42,7 +55,7 @@ def _json_to_internal(json_scorecard):
                        [
                            Attribute(a["reasonCode"],
                                      str(a["partialScore"]),
-                                     a["predicate"])
+                                     _read_predicate(a["predicate"], params))
                                for a in c["attributes"]
                        ]
                       )
@@ -138,13 +151,37 @@ def _render_pmml_attribute(characteristic, name, attribute_details):
                          field=name, operator=operator, value=value)
 
 def main():
-    # Print specified scorecard
     import sys
     import json
-    with open(sys.argv[1]) as sc_source:
+    import itertools
+    import os.path
+    # TODO: switch to a proper argument processing library (probably click)
+    input_spec = sys.argv[1]
+    output_dir = sys.argv[2]
+    with open(input_spec) as sc_source:
         sc_details = json.load(sc_source)
-
-    print(pmml_scorecard(sc_details).decode("ascii"))
+    model_name = sc_details["model_name"]
+    parameters = sc_details.get("param_grid")
+    if parameters is None:
+        param_grid = [None]
+    else:
+        degrees_of_freedom = []
+        for var, options in sorted(parameters.items()):
+            flattened = [(var, suffix, val) for suffix, val in options.items()]
+            degrees_of_freedom.append(flattened)
+        param_grid = itertools.product(*degrees_of_freedom)
+    for param_entry in param_grid:
+        output_parts = [model_name]
+        param_values = {}
+        if param_entry is not None:
+            for var, suffix, val in param_entry:
+                output_parts.append(suffix)
+                param_values[var] = val
+        output_fname = os.path.join(output_dir, "_".join(output_parts) + ".xml")
+        print("Writing {0}".format(output_fname))
+        scorecard_xml = pmml_scorecard(sc_details, param_values)
+        with open(output_fname, "wb") as pmml_output:
+            pmml_output.write(scorecard_xml)
 
 if __name__ == "__main__":
     main()
