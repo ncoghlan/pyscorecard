@@ -5,10 +5,11 @@ import itertools
 import os.path
 import string
 from lxml import etree
+import tabulate
 
 __version__ = "0.3"
 
-__all__ = ["pmml_scorecard"]
+__all__ = ["pmml_scorecard", "generate_scorecards"]
 
 # Public API
 def pmml_scorecard(json_scorecard, parameters=None):
