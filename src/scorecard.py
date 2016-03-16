@@ -20,9 +20,28 @@ def pmml_scorecard(json_scorecard, parameters=None):
     parsed_model = _json_to_internal(json_scorecard, parameters)
     return _internal_to_pmml(*parsed_model)
 
+def characteristic_table(characteristics):
+    """Print characteristic definitions in tabular form"""
+    headings = "Criterion", "Partial Score", "Reason Code"
+    data_rows = []
+    for name, attributes in characteristics:
+        data_rows.append(("===== " + name + " =====", "====", "===="))
+        for reasonCode, partialScore, predicate in attributes:
+            if predicate is None:
+                full_predicate = name + " missing"
+            else:
+                try:
+                    full_predicate = name + " " + predicate
+                except TypeError:
+                    predicate_parts = [name + " " + part for part in predicate]
+                    full_predicate = " && ".join(predicate_parts)
+            data_rows.append((full_predicate, partialScore, reasonCode))
+    return tabulate.tabulate(data_rows, headings, tablefmt="psql")
+
+
 def generate_scorecards(input_spec, output_dir):
     """Generates one or more PMML scorecards from parameterised input spec"""
-    model_name = input_spec["model_name"]
+    base_model_name = input_spec["model_name"]
     parameters = input_spec.get("param_grid")
     if parameters is None:
         param_grid = [None]
@@ -34,17 +53,22 @@ def generate_scorecards(input_spec, output_dir):
         param_grid = itertools.product(*degrees_of_freedom)
     generated_scorecards = []
     for param_entry in param_grid:
-        output_parts = [model_name]
+        output_parts = [base_model_name]
         param_values = {}
         if param_entry is not None:
             for var, suffix, val in param_entry:
                 output_parts.append(suffix)
                 param_values[var] = val
-        output_fname = os.path.join(output_dir, "_".join(output_parts) + ".xml")
-        scorecard_xml = pmml_scorecard(input_spec, param_values)
+        model_name = "_".join(output_parts)
+        __, data_fields, characteristics = _json_to_internal(input_spec,
+                                                             param_values)
+        scorecard_xml = _internal_to_pmml(model_name,
+                                          data_fields,
+                                          characteristics)
+        output_fname = os.path.join(output_dir, model_name + ".xml")
         with open(output_fname, "wb") as pmml_output:
             pmml_output.write(scorecard_xml)
-        generated_scorecards.append(output_fname)
+        generated_scorecards.append((model_name, output_fname, characteristics))
     return generated_scorecards
 
 # Implementation details
@@ -194,8 +218,9 @@ def main():
     with open(spec_file) as sc_source:
         input_spec = json.load(sc_source)
     scorecard_names = generate_scorecards(input_spec, output_dir)
-    for name in scorecard_names:
-        print("Generated {0}".format(name))
+    for model_name, output_fname, characteristics in scorecard_names:
+        print("Generated {0} -> {1}".format(model_name, output_fname))
+        print(characteristic_table(characteristics))
 
 if __name__ == "__main__":
     main()
