@@ -49,7 +49,7 @@ def generate_scorecards(input_spec, output_dir):
 # Implementation details
 
 # Relevant PMML element details
-DataField = namedtuple("DataField", "name dataType optype")
+DataField = namedtuple("DataField", "name dataType optype values")
 Characteristic = namedtuple("Characteristic", "name attributes")
 Attribute = namedtuple("Attribute", "reasonCode partialScore predicate")
 
@@ -75,7 +75,7 @@ def _json_to_internal(json_scorecard, params):
     """Converts a JSON scorecard description to the internal representation"""
     model_name = json_scorecard["model_name"]
     data_fields = [
-        DataField(df["name"], df["dataType"], df["optype"])
+        DataField(df["name"], df["dataType"], df["optype"], df.get("values"))
             for df in json_scorecard["data_fields"]
     ]
     characteristics = [
@@ -102,8 +102,14 @@ def _internal_to_pmml(model_name, data_fields, characteristic_fields):
 
     # Data dictionary
     datadict = etree.SubElement(root, "DataDictionary")
-    for field in data_fields:
-        etree.SubElement(datadict, "DataField", **field._asdict())
+    for name, dataType, optype, values in data_fields:
+        field = etree.SubElement(datadict, "DataField", name=name,
+                                 dataType=dataType, optype=optype)
+        if values is not None:
+            if optype not in ("categorical", "ordinal"):
+                raise ValueError("Cannot specify values for {0}".format(optype))
+            for value in values:
+                etree.SubElement(field, "Value", value=value)
 
     # Scorecard
     scorecard = etree.SubElement(root, "Scorecard",
@@ -117,7 +123,7 @@ def _internal_to_pmml(model_name, data_fields, characteristic_fields):
 
     # Query fields
     schema = etree.SubElement(scorecard, "MiningSchema")
-    for name, dataType, optype in data_fields:
+    for name, dataType, optype, values in data_fields:
         element = etree.SubElement(schema, "MiningField", name=name)
 
     # Output fields
