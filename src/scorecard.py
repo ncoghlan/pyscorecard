@@ -1,7 +1,8 @@
 """PMML Scorecard generator"""
 
 from collections import namedtuple
-import json
+import itertools
+import os.path
 import string
 from lxml import etree
 
@@ -17,6 +18,33 @@ def pmml_scorecard(json_scorecard, parameters=None):
     """
     parsed_model = _json_to_internal(json_scorecard, parameters)
     return _internal_to_pmml(*parsed_model)
+
+def generate_scorecards(input_spec, output_dir):
+    """Generates one or more PMML scorecards from parameterised input spec"""
+    model_name = input_spec["model_name"]
+    parameters = input_spec.get("param_grid")
+    if parameters is None:
+        param_grid = [None]
+    else:
+        degrees_of_freedom = []
+        for var, options in sorted(parameters.items()):
+            flattened = [(var, suffix, val) for suffix, val in options.items()]
+            degrees_of_freedom.append(flattened)
+        param_grid = itertools.product(*degrees_of_freedom)
+    generated_scorecards = []
+    for param_entry in param_grid:
+        output_parts = [model_name]
+        param_values = {}
+        if param_entry is not None:
+            for var, suffix, val in param_entry:
+                output_parts.append(suffix)
+                param_values[var] = val
+        output_fname = os.path.join(output_dir, "_".join(output_parts) + ".xml")
+        scorecard_xml = pmml_scorecard(input_spec, param_values)
+        with open(output_fname, "wb") as pmml_output:
+            pmml_output.write(scorecard_xml)
+        generated_scorecards.append(output_fname)
+    return generated_scorecards
 
 # Implementation details
 
@@ -153,35 +181,14 @@ def _render_pmml_attribute(characteristic, name, attribute_details):
 def main():
     import sys
     import json
-    import itertools
-    import os.path
     # TODO: switch to a proper argument processing library (probably click)
-    input_spec = sys.argv[1]
+    spec_file = sys.argv[1]
     output_dir = sys.argv[2]
-    with open(input_spec) as sc_source:
-        sc_details = json.load(sc_source)
-    model_name = sc_details["model_name"]
-    parameters = sc_details.get("param_grid")
-    if parameters is None:
-        param_grid = [None]
-    else:
-        degrees_of_freedom = []
-        for var, options in sorted(parameters.items()):
-            flattened = [(var, suffix, val) for suffix, val in options.items()]
-            degrees_of_freedom.append(flattened)
-        param_grid = itertools.product(*degrees_of_freedom)
-    for param_entry in param_grid:
-        output_parts = [model_name]
-        param_values = {}
-        if param_entry is not None:
-            for var, suffix, val in param_entry:
-                output_parts.append(suffix)
-                param_values[var] = val
-        output_fname = os.path.join(output_dir, "_".join(output_parts) + ".xml")
-        print("Writing {0}".format(output_fname))
-        scorecard_xml = pmml_scorecard(sc_details, param_values)
-        with open(output_fname, "wb") as pmml_output:
-            pmml_output.write(scorecard_xml)
+    with open(spec_file) as sc_source:
+        input_spec = json.load(sc_source)
+    scorecard_names = generate_scorecards(input_spec, output_dir)
+    for name in scorecard_names:
+        print("Generated {0}".format(name))
 
 if __name__ == "__main__":
     main()
