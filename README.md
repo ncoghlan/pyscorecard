@@ -1,3 +1,6 @@
+Note: I'm not currently working on this, if you're interested in picking
+it up, file an issue over on https://github.com/ncoghlan/admin-meta
+
 # pyscorecard
 Python client for submitting PMML ScoreCard models and queries against them to OpenScoring
 
